@@ -2,7 +2,14 @@ import requests
 import json
 
 
-#TODO Build a decorator for the errors
+def checkNetwork(func):
+    def wrapper(*args, **kwargs):
+        try:
+            res= func(args[0], **kwargs)
+            return res
+        except Exception as err:
+            args[0].handleError("Check your network connection")
+            return "error"
 
 class TelegramBot():
     def __init__(self, botToken="", **kw):
@@ -26,3 +33,6 @@ class TelegramBot():
         else:
             res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getUpdates", params={"offset": kw.get("offset")}, timeout=5).content)
         return res
+    
+    def handleError(self, *args):
+        pass
