@@ -2,7 +2,7 @@ import requests
 import json
 
 
-
+#TODO Build a decorator for the errors
 
 class TelegramBot():
     def __init__(self, botToken="", **kw):
@@ -18,4 +18,11 @@ class TelegramBot():
             res = json.loads(requests.post(f"{self.apiUrl+kw.get('token')}/getMe", timeout=5).content)
             return res
         res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getMe").content)
+        return res
+    
+    def getUpdate(self, **kw):
+        if not kw.get("offset"):
+            res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getUpdates", timeout=5).content)
+        else:
+            res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getUpdates", params={"offset": kw.get("offset")}, timeout=5).content)
         return res
