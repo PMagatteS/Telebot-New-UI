@@ -42,6 +42,22 @@ class TelegramBot():
             "chat_id": kw.get("chatId"),
             "text": kw.get("text")
         })
+
+    @checkNetwork
+    def sendFile(self, **kw):
+        res=requests.post(f"{self.apiUrl+self.botToken}/sendDocument" , timeout=5, params={
+            "chat_id": kw.get("chatId"),
+            "caption": kw.get("text"),
+            "document": kw.get("fileId")
+        })
+
+    @checkNetwork
+    def sendPhoto(self, **kw):
+        res=requests.post(f"{self.apiUrl+self.botToken}/sendPhoto" , timeout=5, params={
+            "chat_id": kw.get("chatId"),
+            "caption": kw.get("text"),
+            "photo": kw.get("fileId")
+        })
     
     def handleError(self, text, **kw):
         pass
