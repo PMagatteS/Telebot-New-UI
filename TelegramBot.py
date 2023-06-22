@@ -95,19 +95,101 @@ class TelegramBot():
                               )
     
     def handleUpdates(self, **kw):
-        pass
+        updates = kw.get("updates")
+        if not updates:
+            updates = self.getUpdate().get("result")   
 
+        for update in updates:
+            if update.get("message"):
+                message = update.get("message")
+
+            elif update.get("edited_message"):
+                message = update.get("edited_message")
+
+            else: 
+                continue
+
+            if message.get("text"):
+                text = message.get("text")
+            elif message.get("caption"):
+                text = message.get("caption")
+            else:
+                text = ""
+            userName = message.get("from").get("username")
+            self.isAdmin(name=userName, update=update, text=text) 
+        return        
+                
     def isAdmin(self, **kw):
-        pass
+        update, name, text= kw.get("update"), kw.get('name'), kw.get('text')
+        offset = update.get("update_id")
+        admins = self.botDatas.get("bot admins")
+        adminList = [admin.get("name") for admin in admins]
+        if name in adminList:
+            for admin in admins:
+                if name == admin.get("name"):
+                    if "/get_all_ids" in text:
+                        admin["getAllId"] = not admin.get("getAllId")
 
-    def isMaster(self, **kw):
-        pass
+                    if admin.get("getAllId")  or "/get_file_id" in text:
+                        if update.get("message"):
+                            self.getFileId(update= update.get("message"))
+                        elif update.get("edited_message"):
+                            self.getFileId(update= update.get("edited_message"))
+                    if self.isMaster(name=name):
+                        if "/stop_bot_server" in text:
+                            self.serverRunning = False
+                    self.isBotCommand(text=text, update=update)
+                else:
+                    continue
+        else:
+            self.isBan(update= update, text=text)
+
+        self.getUpdate(offset=offset+1)
+    
+    def isMaster(self, name, **kw):
+        master = self.botDatas.get("master").get("name")
+        if not master:
+            return False
+        if name == master:
+            return True
+        else:   
+            return False
 
     def isBan(self, **kw):
-        pass
+        update,  text= kw.get("update"), kw.get('text')
+        if not text:
+            return
+        banWords = self.botDatas.get("ban words")
+        for word in banWords:
 
+            if word.get("word") in text:
+                self.banChatMember(chatId=update.get("message").get("chat").get("id"), 
+                                   user= update.get("message").get("from").get("id"), 
+                                   date=getTimestamp(word.get("time"))
+                                   )
+                return
+            
+        self.isBotCommand(update=update, text=text)
+
+                
     def isBotCommand(self, **kw):
-        pass
+        update,  text= kw.get("update"), kw.get('text')
+        message = update.get("message")
+        commandList = self.botDatas.get("bot commands")
+        typeOfCommands = {
+            "Send message": self.sendMessage,
+            "Send image": self.sendPhoto,
+            "Send document": self.sendFile,
+            "Send media group": self.sendMediaGroup
+        }
+        if not text:
+            return
+        for command in commandList:
+            if command.get("name") in text:
+                response = typeOfCommands.get(command.get("command type"))
+                response(chatId=message.get("chat").get("id"), **command.get("args"))
+
 
     def handleError(self, text, **kw):
-        pass
+        if self.errorHandler:
+            self.errorHandler(text)
