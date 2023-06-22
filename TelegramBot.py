@@ -1,6 +1,21 @@
 import requests
 import json
+import time
+import datetime
 
+def getTimestamp(text):
+    currentTime = datetime.datetime.now()
+    limits = {
+        "Hour": currentTime + datetime.timedelta(hours=1),
+        "Day": currentTime + datetime.timedelta(days=1),
+        "Week": currentTime + datetime.timedelta(weeks=1),
+        "Month": currentTime + datetime.timedelta(days=31),
+        "Permanent": currentTime + datetime.timedelta(seconds=20),
+    }
+
+    limitTime = limits[text]
+    timestamp = int(time.mktime(limitTime.timetuple()))
+    return timestamp
 
 def checkNetwork(func):
     def wrapper(*args, **kwargs):
@@ -193,3 +208,17 @@ class TelegramBot():
     def handleError(self, text, **kw):
         if self.errorHandler:
             self.errorHandler(text)
+
+    def runServer(self, **kw):
+        isBot = self.getMe()
+        if not isBot.get("ok"):
+            print("Error: Couldn't Get Your Bot")
+            return
+        self.serverRunning = True
+        while self.serverRunning:
+            updates = self.getUpdate()
+            result = updates.get("result")
+            if len(result) > 0:
+                self.handleUpdates(updates=result)
+            time.sleep(self.serverCooldown)
+
