@@ -2,6 +2,8 @@ import requests
 import json
 import time
 import datetime
+from Config import loadCommandList, loadToken
+
 
 def getTimestamp(text):
     currentTime = datetime.datetime.now()
@@ -222,3 +224,8 @@ class TelegramBot():
                 self.handleUpdates(updates=result)
             time.sleep(self.serverCooldown)
 
+if __name__ == "__main__":
+    token = loadToken()
+    botDatas = loadCommandList()
+    bot = TelegramBot(botToken=token, botDatas=botDatas)
+    bot.runServer()
