@@ -36,5 +36,12 @@ class TelegramBot():
             res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getUpdates", params={"offset": kw.get("offset")}, timeout=5).content)
         return res
     
+    @checkNetwork
+    def sendMessage(self, **kw):
+        requests.post(f"{self.apiUrl+self.botToken}/sendMessage", params={
+            "chat_id": kw.get("chatId"),
+            "text": kw.get("text")
+        })
+    
     def handleError(self, text, **kw):
         pass
