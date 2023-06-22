@@ -58,6 +58,22 @@ class TelegramBot():
             "caption": kw.get("text"),
             "photo": kw.get("fileId")
         })
+
+    @checkNetwork
+    def sendMediaGroup(self, **kw):
+        res=requests.post(f"{self.apiUrl+self.botToken}/sendMediaGroup" , timeout=5, params={
+            "chat_id": kw.get("chatId"),
+            "media": json.dumps(kw.get("media"))
+        })
+
+
+    @checkNetwork
+    def banChatMember(self, **kw):
+        res=requests.post(f"{self.apiUrl+self.botToken}/banChatMember" , timeout=5, params={
+            "chat_id": kw.get("chatId"),
+            "user_id": kw.get("user"),
+            "until_date": kw.get("date")
+        })
     
     def handleError(self, text, **kw):
         pass
