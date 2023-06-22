@@ -74,6 +74,40 @@ class TelegramBot():
             "user_id": kw.get("user"),
             "until_date": kw.get("date")
         })
+
+    def getFileId(self, **kw):
+        types = ["video", "document", "audio", "voice", "animation"]
+        update = kw.get('update')
+        if update.get("photo"):
+                self.sendPhoto(
+                    chatId= update.get("chat").get("id"),
+                    text= f"Photo id : {update.get('photo')[0].get('file_id')}",
+                    fileId= update.get('photo')[0].get('file_id')
+                              )
+                return
+
+        for media in types:
+            if update.get(media):
+                self.sendFile(
+                    chatId= update.get("chat").get("id"),
+                    text= f"{media.capitalize()} id : {update.get(media).get('file_id')}",
+                    fileId= update.get(media).get('file_id')
+                              )
     
+    def handleUpdates(self, **kw):
+        pass
+
+    def isAdmin(self, **kw):
+        pass
+
+    def isMaster(self, **kw):
+        pass
+
+    def isBan(self, **kw):
+        pass
+
+    def isBotCommand(self, **kw):
+        pass
+
     def handleError(self, text, **kw):
         pass
