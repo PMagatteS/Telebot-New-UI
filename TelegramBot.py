@@ -20,6 +20,7 @@ class TelegramBot():
         self.apiUrl = "https://api.telegram.org/bot"
         self.serverRunning = False
 
+    @checkNetwork
     def getMe(self, **kw):
         if kw.get("token"):
             res = json.loads(requests.post(f"{self.apiUrl+kw.get('token')}/getMe", timeout=5).content)
@@ -27,6 +28,7 @@ class TelegramBot():
         res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getMe").content)
         return res
     
+    @checkNetwork
     def getUpdate(self, **kw):
         if not kw.get("offset"):
             res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getUpdates", timeout=5).content)
@@ -34,5 +36,5 @@ class TelegramBot():
             res = json.loads(requests.post(f"{self.apiUrl+self.botToken}/getUpdates", params={"offset": kw.get("offset")}, timeout=5).content)
         return res
     
-    def handleError(self, *args):
+    def handleError(self, text, **kw):
         pass
