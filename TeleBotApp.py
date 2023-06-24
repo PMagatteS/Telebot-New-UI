@@ -114,6 +114,24 @@ class SendMessageScreen(Screen):
                      
               else: 
                      return
+              
+class SendFile(SendMessageScreen):
+       def __init__(self, label, mediaType, **kwargs):
+              super(SendFile, self).__init__(label, **kwargs)
+              self.mediaType = mediaType
+              self.IdBox = MDBoxLayout(size_hint=(.1, None), orientation= 'vertical')
+              self.question_icon = MDIconButton(icon="help-circle", pos_hint={"top":1, "right": 1}, on_press= self.gotoMediaId)
+              self.requieredCaption = False
+              self.mediaID = MDTextField(hint_text=f"Enter {mediaType} id", helper_text_mode="on_error", helper_text = "Requiered Field", pos_hint={"center_y": .5}, size_hint=(1, None))
+              self.toolbar.title = f"Add Send {mediaType} Command"
+              self.IdBox.add_widget(self.question_icon)
+              self.IdBox.add_widget(self.mediaID)
+              self.box.add_widget(self.IdBox, 2)
+              self.message.hint_text= "Caption(not requiered)"
+
+       def gotoMediaId(self, button):
+              changeScreen("Help")
+              #TODO scroll to the right section
 
 # Nav drawer
 class NavigationDrawer(MDNavigationDrawer):
@@ -139,7 +157,7 @@ class NavigationDrawer(MDNavigationDrawer):
 class WindowsManager(ScreenManager):
        def __init__(self, BotDatas, **kwargs):
               super(WindowsManager, self).__init__(**kwargs)
-              self.testScreen = SendMessageScreen(label="Send Message", name = "Send Message")
+              self.testScreen = SendFile("Send image", "image")
               self.add_widget(self.testScreen)
 
 
