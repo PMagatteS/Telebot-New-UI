@@ -77,8 +77,8 @@ class SendMessageScreen(Screen):
               appDatas = App.get_running_app().root.BotDatas.get('bot commands')
               commandName = self.commandName.text
               caption = self.message.text
-              if len(commandName) == 0:
-                     self.commandName.error = True
+              
+              self.commandName.error =  len(commandName) == 0
                      
               if len(caption) == 0 and self.requieredCaption:
                      self.message.helper_text = "Requiered Field"
@@ -150,14 +150,34 @@ class NavigationDrawer(MDNavigationDrawer):
               
        
               self.add_widget(self.drawerMenu)
-              
+
+
+# Panels---------------------------------------------------------------------------------
+class ExpentionPanelContent(MDBoxLayout):
+       def __init__(self, commandNames, **kwargs):
+              super().__init__(**kwargs)
+              self.orientation = "vertical"
+              self.adaptive_height = True
+              for name in commandNames:
+                     self.add_widget(OneLineListItem(text=name, on_press=self.goto))
+
+       def goto(self, inst):
+              changeScreen(inst.text)
+
+class ChoicePanel(ExpentionPanelContent)   :
+       def __init__(self, commandNames, **kwargs):
+              super(ChoicePanel, self).__init__(commandNames, **kwargs)   
+
+       def goto(self, inst):
+              self.parent.panel_cls.text = inst.text           
+# Panels---------------------------------------------------------------------------------           
              
 
 # Screen manager
 class WindowsManager(ScreenManager):
        def __init__(self, BotDatas, **kwargs):
               super(WindowsManager, self).__init__(**kwargs)
-              self.testScreen = SendFile("Send image", "image")
+              self.testScreen = SendMessageScreen("Send Message")
               self.add_widget(self.testScreen)
 
 
