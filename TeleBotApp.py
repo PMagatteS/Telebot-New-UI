@@ -12,6 +12,8 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
+from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
+
 
 
 
@@ -133,23 +135,6 @@ class SendFile(SendMessageScreen):
               changeScreen("Help")
               #TODO scroll to the right section
 
-# Nav drawer
-class NavigationDrawer(MDNavigationDrawer):
-       def __init__(self, **kwargs):
-              super(NavigationDrawer, self).__init__(**kwargs)
-              individualItems = ["Command List"]
-              self.drawerHeader = MDNavigationDrawerHeader(title="Bot: ", text="Status: offline", title_font_size="26sp")
-              self.drawerMenu = MDNavigationDrawerMenu()
-              self.drawerMenu.add_widget(self.drawerHeader)  
-              # Will add all the individual items at once       
-              for item in individualItems:
-                     self.drawerMenu.add_widget(OneLineListItem(text = item, on_press=lambda x: changeScreen(x.text)))
-
-              # Will add here the panels the help item will remain at the bottom
-              self.drawerMenu.add_widget(OneLineListItem(text = "Help", on_press=lambda x: changeScreen(x.text)))
-              
-       
-              self.add_widget(self.drawerMenu)
 
 
 # Panels---------------------------------------------------------------------------------
@@ -172,6 +157,27 @@ class ChoicePanel(ExpentionPanelContent)   :
               self.parent.panel_cls.text = inst.text           
 # Panels---------------------------------------------------------------------------------           
              
+# Nav drawer
+class NavigationDrawer(MDNavigationDrawer):
+       def __init__(self, **kwargs):
+              super(NavigationDrawer, self).__init__(**kwargs)
+              individualItems = ["Command List"]
+              self.drawerHeader = MDNavigationDrawerHeader(title="Bot: ", text="Status: offline", title_font_size="26sp")
+              self.drawerMenu = MDNavigationDrawerMenu()
+              self.drawerMenu.add_widget(self.drawerHeader)  
+              self.panels = (self.commandsPanel, self.adminPanel, self.banPanel) = (MDExpansionPanel(content=ExpentionPanelContent(commandNames=BotCommands), panel_cls= MDExpansionPanelOneLine(text="Bot Commands")), 
+                                                                                    MDExpansionPanel(content=ExpentionPanelContent(commandNames=["Add Admin", "List Of Admin"]), panel_cls= MDExpansionPanelOneLine(text="Admins")),
+                                                                                    MDExpansionPanel(content=ExpentionPanelContent(commandNames=["Ban words", "Banned Words"]), panel_cls= MDExpansionPanelOneLine(text="Ban")))
+              # Will add all the individual items at once       
+              for item in individualItems:
+                     self.drawerMenu.add_widget(OneLineListItem(text = item, on_press=lambda x: changeScreen(x.text)))
+              for panel in self.panels:
+                     self.drawerMenu.add_widget(panel)
+              # Will add here the panels the help item will remain at the bottom
+              self.drawerMenu.add_widget(OneLineListItem(text = "Help", on_press=lambda x: changeScreen(x.text)))
+              
+       
+              self.add_widget(self.drawerMenu)
 
 # Screen manager
 class WindowsManager(ScreenManager):
