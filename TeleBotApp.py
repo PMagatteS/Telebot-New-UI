@@ -5,8 +5,15 @@ from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivymd.uix.navigationdrawer import MDNavigationLayout, MDNavigationDrawerMenu, MDNavigationDrawer, MDNavigationDrawerHeader
 from kivy.uix.screenmanager import Screen, ScreenManager
+from kivymd.uix.toolbar import MDTopAppBar
+from kivymd.uix.textfield import MDTextField
+from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
+
+
 
 
 
@@ -38,6 +45,76 @@ def changeScreen(name):
             Window.size = (900, 400)
     manager.current = name  
 
+class MainToolBar(MDTopAppBar):
+       def __init__(self, **kwargs):
+              super().__init__(**kwargs)
+              self.left_action_items= [["menu", lambda x: toggleDrawer()]]
+              self.pos_hint = {'top': 1}
+              self.elevation = 0
+
+class SendMessageScreen(Screen):
+       def __init__(self, label, **kwargs):
+              super(SendMessageScreen, self).__init__(**kwargs)
+              self.toolbar = MainToolBar(title="Add Send Message Command")
+              self.requieredCaption = True
+              self.label = MDLabel(text=label, halign="center")
+              self.commandName = MDTextField(hint_text="Enter command name", helper_text_mode="on_error", helper_text = "Requiered Field")
+              self.message = MDTextField(hint_text="Enter message (multilines)",  helper_text_mode="on_error", multiline= True, size_hint_y= 1)
+              self.box = GridLayout(cols=1, spacing=10, size_hint_y= None,pos_hint={'center_x': 0.5, 'top': .8}, size_hint_x= .8)
+              self.validate = MDRaisedButton(text="Add command", pos_hint={'center_x': 0.5, 'top': 1}, on_press=self.addToCommandList)
+              self.buttonBox = FloatLayout(size_hint_x= 1)
+              self.messageBox = MDBoxLayout(size_hint=(.1, None))
+              self.buttonBox.add_widget(self.validate)
+              self.messageBox.add_widget(self.message)
+              self.box.add_widget(self.label)
+              self.box.add_widget(self.commandName)
+              self.box.add_widget(self.messageBox)
+              self.box.add_widget(self.buttonBox)
+              self.add_widget(self.toolbar)
+              self.add_widget(self.box)
+
+       def addToCommandList(self, inst):
+              appDatas = App.get_running_app().root.BotDatas.get('bot commands')
+              commandName = self.commandName.text
+              caption = self.message.text
+              if len(commandName) == 0:
+                     self.commandName.error = True
+                     
+              if len(caption) == 0 and self.requieredCaption:
+                     self.message.helper_text = "Requiered Field"
+                     self.message.error = True
+              elif len(caption) > 1024 and not self.requieredCaption:
+                     self.message.helper_text = f"Max length 1024 your current length {len(caption)}"
+                     self.message.error = True
+
+              elif len(caption) > 4096:
+                     self.message.helper_text = f"Max length 4096 your current length {len(caption)}"
+                     self.message.error = True
+              else:
+                     self.message.error = False
+                     
+              if "mediaID" in dir(self):
+                     if len(self.mediaID.text) == 0:
+                            self.mediaID.error = True
+                            
+              if len(commandName) > 0 and (len(caption)>0 and len(caption) <4097 and self.requieredCaption)or (not self.requieredCaption and len(self.mediaID.text) > 0 and len(caption) <1025):
+                     if  self.requieredCaption:
+                            appDatas.append({"name": commandName, "command type": "Send message", "displayed type": "Send Message", "args": {"text": caption}})
+                            #TODO save the datas
+                     else:  
+                            if self.mediaType == "Image":
+                                   appDatas.append({"name": commandName, "command type": "Send image", "displayed type": "Send Image", "args": {"caption": caption, "fileId":self.mediaID.text}})
+                            else:
+                                   appDatas.append({"name": commandName, "command type": "Send document", "displayed type": f"Send {self.mediaType}", "args": {"caption": caption, "fileId":self.mediaID.text}})
+                            #TODO save the datas
+                            self.mediaID.text = ""
+                     self.commandName.text = ""
+                     self.message.text = ""
+                     #TODO refresh the datatable
+                     
+              else: 
+                     return
+
 # Nav drawer
 class NavigationDrawer(MDNavigationDrawer):
        def __init__(self, **kwargs):
@@ -62,6 +139,8 @@ class NavigationDrawer(MDNavigationDrawer):
 class WindowsManager(ScreenManager):
        def __init__(self, BotDatas, **kwargs):
               super(WindowsManager, self).__init__(**kwargs)
+              self.testScreen = SendMessageScreen(label="Send Message", name = "Send Message")
+              self.add_widget(self.testScreen)
 
 
 # Root widget
