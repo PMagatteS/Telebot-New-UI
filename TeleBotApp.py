@@ -147,7 +147,7 @@ class SendMediaGroup(SendFile):
               self.validate.pos_hint = {'center_x': .9, 'top': 1}
               
 
-       def addToMediaList(self, inst):
+       def addToMediaList(self, button):
               if len(self.mediaList) == 10:
                      #prompt a dialog for media limit
                      return
@@ -184,6 +184,28 @@ class SendMediaGroup(SendFile):
                      self.message.text= ""
                      self.mediaID.text= ""
                      # Update the media group table
+       
+       def addToCommandList(self, button):
+              appDatas = appDatas = App.get_running_app().root.BotDatas.get('bot commands')
+              commandName = self.commandName.text
+              if len(commandName) == 0:
+                     self.commandName.error = True
+              else:
+                     self.commandName.error = False
+
+              if len(self.mediaList) < 2:
+                     # Add a dialog box
+                     pass
+                     
+              
+              if len(commandName) > 0 and len(self.mediaList) >= 2:
+                     appDatas.append({"name": commandName, "command type": "Send media group", "displayed type": "Send Media Group", "args": {"media":self.mediaList.copy()}})
+                     self.mediaList.clear()
+                     self.commandName.text = ""
+                     # Refresh involved tables and save data
+
+              else:
+                     return  
 
 
 # Panels---------------------------------------------------------------------------------
