@@ -135,6 +135,55 @@ class SendFile(SendMessageScreen):
               changeScreen("Help")
               #TODO scroll to the right section
 
+class SendMediaGroup(SendFile):
+       def __init__(self, label, mediaType,**kw):
+              super(SendMediaGroup, self).__init__(label, mediaType, **kw)
+              self.medias =["Photo", "Video", "Document", "Audio"]
+              self.mediaList = []
+              self.typeOfMedia = MDExpansionPanel(content=ChoicePanel(commandNames=self.medias), panel_cls= MDExpansionPanelOneLine(text="Media Type"))
+              self.box.add_widget(self.typeOfMedia, 3)
+              self.buttonBox.add_widget(MDRaisedButton(text="Add to medias", pos_hint={'center_x': .1, 'top': 1}, on_press=self.addToMediaList))
+              self.buttonBox.add_widget(MDRaisedButton(text="Edit medias", pos_hint={'center_x': .5, 'top': 1}, on_press= lambda x: changeScreen("Handle Media Group")))
+              self.validate.pos_hint = {'center_x': .9, 'top': 1}
+              
+
+       def addToMediaList(self, inst):
+              if len(self.mediaList) == 10:
+                     #prompt a dialog for media limit
+                     return
+              caption = self.message.text
+              mediaId = self.mediaID.text
+              typeOfMedia = self.typeOfMedia.panel_cls.text
+                     
+              if len(mediaId) == 0:
+                     self.mediaID.error = True
+              else:
+                     self.mediaID.error = False
+              if typeOfMedia not in self.medias:
+                     self.typeOfMedia.panel_cls.text = "Choose a media type"
+              
+              if len(mediaId) > 0 and typeOfMedia in self.medias:
+                     allTypes = [media.get("type") for media in self.mediaList]
+              
+                     if len(allTypes) == 0:
+                            self.mediaList.append({"type": typeOfMedia.lower(), "caption": caption, "media": mediaId})
+                     elif typeOfMedia == "Photo" or typeOfMedia == "Video":
+                            for type in allTypes:
+                                   if type == "photo" or type == "video":
+                                          continue
+                                   else:
+                                          # Prompt a dialog box
+                                          return
+                            self.mediaList.append({"type": typeOfMedia.lower(), "caption": caption, "media": mediaId})
+                     else:
+                            if typeOfMedia.lower() not in allTypes:
+                                   # Prompt a dialog box
+                                   return
+                            else:
+                                   self.mediaList.append({"type": typeOfMedia.lower(), "caption": caption, "media": mediaId})
+                     self.message.text= ""
+                     self.mediaID.text= ""
+                     # Update the media group table
 
 
 # Panels---------------------------------------------------------------------------------
@@ -183,7 +232,7 @@ class NavigationDrawer(MDNavigationDrawer):
 class WindowsManager(ScreenManager):
        def __init__(self, BotDatas, **kwargs):
               super(WindowsManager, self).__init__(**kwargs)
-              self.testScreen = SendMessageScreen("Send Message")
+              self.testScreen = SendMediaGroup("label", "media type")
               self.add_widget(self.testScreen)
 
 
