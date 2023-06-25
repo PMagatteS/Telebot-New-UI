@@ -13,6 +13,7 @@ from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
+from kivymd.uix.dialog import MDDialog
 
 
 
@@ -27,6 +28,10 @@ BotCommands = ["Send Message", "Send Image", "Send Video", "Send File", "Send Au
 # Will add more screen to those lists
 largeScreens = ["Command List"]
 longScreens  = [*BotCommands, "Help"]
+
+def infoDialog(text, title=""):
+       dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
+       dialog.open()
 
 def toggleDrawer(*args):
        App.get_running_app().root.children[0].set_state("toggle")
@@ -149,7 +154,7 @@ class SendMediaGroup(SendFile):
 
        def addToMediaList(self, button):
               if len(self.mediaList) == 10:
-                     #prompt a dialog for media limit
+                     infoDialog(text="Media group can only contian 10 medias")
                      return
               caption = self.message.text
               mediaId = self.mediaID.text
@@ -172,12 +177,12 @@ class SendMediaGroup(SendFile):
                                    if type == "photo" or type == "video":
                                           continue
                                    else:
-                                          # Prompt a dialog box
+                                          infoDialog(text=f"Media group of {typeOfMedia} can only contain Photo and video")
                                           return
                             self.mediaList.append({"type": typeOfMedia.lower(), "caption": caption, "media": mediaId})
                      else:
                             if typeOfMedia.lower() not in allTypes:
-                                   # Prompt a dialog box
+                                   infoDialog(text=f"Media group of {typeOfMedia} can only contain {typeOfMedia}")
                                    return
                             else:
                                    self.mediaList.append({"type": typeOfMedia.lower(), "caption": caption, "media": mediaId})
@@ -194,8 +199,7 @@ class SendMediaGroup(SendFile):
                      self.commandName.error = False
 
               if len(self.mediaList) < 2:
-                     # Add a dialog box
-                     pass
+                     infoDialog(text=f"Media group must contain at least 2 media (media: {len(self.mediaList)}/10)")
                      
               
               if len(commandName) > 0 and len(self.mediaList) >= 2:
