@@ -16,10 +16,6 @@ from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
 from kivymd.uix.dialog import MDDialog
 
 
-
-
-
-
 from TelegramBot import TelegramBot
 from Config import saveCommandList, loadCommandList, saveToken, loadToken, toggleEnableSave, isSaveTokenEnabled, deleteToken, savePath, loadPath
 
@@ -28,6 +24,8 @@ BotCommands = ["Send Message", "Send Image", "Send Video", "Send File", "Send Au
 # Will add more screen to those lists
 largeScreens = ["Command List"]
 longScreens  = [*BotCommands, "Help"]
+# Choice user will have for bans
+BanTimes = ["Hour", "Day", "Week", "Month", "Permanent"]
 
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
@@ -80,7 +78,7 @@ class SendMessageScreen(Screen):
               self.add_widget(self.toolbar)
               self.add_widget(self.box)
 
-       def addToCommandList(self, inst):
+       def addToCommandList(self, button):
               appDatas = App.get_running_app().root.BotDatas.get('bot commands')
               commandName = self.commandName.text
               caption = self.message.text
@@ -210,6 +208,69 @@ class SendMediaGroup(SendFile):
 
               else:
                      return  
+              
+class BanWords(SendMessageScreen):
+       def __init__(self, **kwargs):
+              super().__init__("", **kwargs)
+              self.box.remove_widget(self.messageBox)
+              self.toolbar.title = "Ban words"
+              self.commandName.hint_text = "Enter word(s) to ban"
+              self.banTime = MDExpansionPanel(content=ChoicePanel(commandNames=BanTimes), panel_cls= MDExpansionPanelOneLine(text="Ban Time"))
+              self.box.add_widget(self.banTime, 1)
+              self.validate.text = "Add to banned words"
+              
+       def addToCommandList(self, button):
+              words = self.commandName.text
+              banTime= self.banTime.panel_cls.text
+              if len(words) == 0:
+                     self.commandName.error = True
+              else:
+                     self.commandName.error = False
+              if banTime not in BanTimes:
+                     infoDialog(text="Choose a ban time")
+
+              if len(words) > 0 and banTime in BanTimes:
+                     banList = App.get_running_app().root.BotDatas.get("ban words")
+                     banList.append({"word": words, "time": banTime})
+                     self.commandName.text = ""
+                     #TODO Save datas and refresh right table
+
+class AdminsScreen(SendMessageScreen):
+       def __init__(self, **kwargs):
+              super().__init__("", **kwargs)
+              self.toolbar.title = "Add Admins"
+              self.commandName.hint_text = "Enter admin username (without the @)"
+              self.box.remove_widget(self.messageBox)
+              self.adminType = MDExpansionPanel(content=ChoicePanel(commandNames=["Admin", "Master"]), panel_cls= MDExpansionPanelOneLine(text="Admin"))
+              self.box.add_widget(self.adminType, 1)
+              self.validate.text = "Add Admin"
+
+       def addToCommandList(self, button):
+              adminList = App.get_running_app().root.BotDatas.get("bot admins")
+              adminNames= [admin.get("name") for admin in adminList]
+              master = App.get_running_app().root.BotDatas.get("master").get("name")
+              name = self.commandName.text
+              adminType = self.adminType.panel_cls.text
+              if len(name) == 0:
+                     self.commandName.error = True 
+                     return
+              if adminType == "Admin":
+                     if name in adminNames:
+                            infoDialog(text= f"{name} is already an admin")
+                     else:
+                            adminList.append({"name":name, "getAllId": False})
+                            infoDialog(text= f"{name} is now an admin")
+              elif adminType == "Master":
+                     if name == master:
+                            infoDialog(text= f"{name} is already the master")
+                     else:
+                            App.get_running_app().root.BotDatas.get("master")["name"] = name
+                            infoDialog(text= f"{name} is the master")
+                            if name not in adminNames:
+                                   adminList.append({"name":name, "getAllId": False})
+              self.commandName.text = ""
+              self.adminType.panel_cls.text = "Admin"
+              #TODO Save datas and refresh right table
 
 
 # Panels---------------------------------------------------------------------------------
@@ -258,8 +319,21 @@ class NavigationDrawer(MDNavigationDrawer):
 class WindowsManager(ScreenManager):
        def __init__(self, BotDatas, **kwargs):
               super(WindowsManager, self).__init__(**kwargs)
-              self.testScreen = SendMediaGroup("label", "media type")
-              self.add_widget(self.testScreen)
+              self.sendMessage = SendMessageScreen(label="Send Message", name = "Send Message")
+              self.sendImage = SendFile(label="Send Image", mediaType="Image", name= "Send Image")
+              self.sendVideo = SendFile(label="Send Video", mediaType="Video", name= "Send Video")
+              self.sendFile = SendFile(label="Send File", mediaType="File", name= "Send File")
+              self.sendAudio = SendFile(label="Send Audio", mediaType="Audio", name= "Send Audio")
+              self.mediaGroup = SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group")
+
+              self.add_widget(self.sendMessage)
+              self.add_widget(self.sendImage)
+              self.add_widget(self.sendVideo)
+              self.add_widget(self.sendFile)
+              self.add_widget(self.sendAudio)
+              self.add_widget(self.mediaGroup)
+         
+
 
 
 # Root widget
