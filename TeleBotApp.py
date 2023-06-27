@@ -24,15 +24,15 @@ from Config import saveCommandList, loadCommandList, saveToken, loadToken, toggl
 # The main commands of the bots
 BotCommands = ["Send Message", "Send Image", "Send Video", "Send File", "Send Audio", "Media Group"]
 # Will add more screen to those lists
-largeScreens = ["Command List"]
-longScreens  = [*BotCommands, "Help"]
+largeScreens = ["Command List", "Handle Media Group"]
+longScreens  = [*BotCommands, "Help", "Token"]
 # Choice user will have for bans
 BanTimes = ["Hour", "Day", "Week", "Month", "Permanent"]
 # For the command's datatable
 MediaTypes = ["Send File", "Send Image", "Send Video", "Send Audio"]
 # Columns for datatables
 commandListCols = [("N.", dp(20)), ("Command Type", dp(40)), ("Command Name", dp(40)), ("Media Id", dp(30)), ("Caption", dp(60)),]
-
+mediaGroupCols = [ ("N.", dp(20)), ("Type", dp(50)), ("Caption", dp(50)),  ("Media Id", dp(50)),]
 
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
@@ -298,8 +298,7 @@ class TokenScreen(SendMessageScreen):
               changeScreen("Help")
               #TODO Scroll to this section
               
-       def addToCommandList(self, button):
-              
+       def addToCommandList(self, button):  
               token = self.commandName.text 
               if len(token) == 0:
                      self.commandName.error = True
@@ -362,7 +361,22 @@ class DataTable(Screen):
                             ids = " ,".join([media.get("media") for media in data.get("args").get("media")])
                             newRows.append((index, data.get("displayed type"), data.get("name"), f"{ids[:25]}...", ""))
                      index+=1     
-              self.table.row_data = newRows     
+              self.table.row_data = newRows 
+
+class HandleMediaGroup(DataTable):
+       def __init__(self, mediaList, columns, **kwargs):
+              super(HandleMediaGroup,self).__init__(mediaList, columns, **kwargs)
+              self.toolbar.title  = "List Of Medias"
+              self.toolbar.left_action_items = [["keyboard-backspace", lambda x: changeScreen("Media Group")]]
+              self.mapData()
+       
+       def mapData(self):
+              newRows = []
+              index = 1
+              for data in self.commandList:
+                     newRows.append((index, data.get("type"), data.get("caption"), data.get("media")))
+                     index +=1
+              self.table.row_data = newRows    
 # DataTables and child classes
 
 # Panels---------------------------------------------------------------------------------
@@ -419,6 +433,7 @@ class WindowsManager(ScreenManager):
               self.mediaGroup = SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group")
               self.token = TokenScreen(name="Token")
               self.dataTable = DataTable(name="Command List", commandList=BotDatas.get("bot commands"), columns=commandListCols)
+              self.handleMediaGroup = HandleMediaGroup(name="Handle Media Group", mediaList=self.mediaGroup.mediaList, columns=mediaGroupCols)
 
 
               self.add_widget(self.sendMessage)
@@ -429,6 +444,7 @@ class WindowsManager(ScreenManager):
               self.add_widget(self.mediaGroup)
               self.add_widget(self.token)
               self.add_widget(self.dataTable)
+              self.add_widget(self.handleMediaGroup)
          
 
 
