@@ -272,6 +272,31 @@ class AdminsScreen(SendMessageScreen):
               self.adminType.panel_cls.text = "Admin"
               #TODO Save datas and refresh right table
 
+class TokenScreen(SendMessageScreen):
+       def __init__(self,  **kwargs):
+              super().__init__("", **kwargs)   
+              self.box.remove_widget(self.messageBox)   
+              self.box.remove_widget(self.commandName)
+              self.toolbar.title = "Bot Token" 
+              self.entryBox = MDBoxLayout(size_hint=(.1, None), orientation= 'vertical')
+              self.question_icon = MDIconButton(icon="help-circle", pos_hint={"top":1, "right": 1}, on_press= self.gotoToken)
+              self.entryBox.add_widget(self.question_icon)
+              self.entryBox.add_widget(self.commandName)
+              self.commandName.hint_text ="Enter your bot's token" 
+              self.validate.text = "Validate Token"    
+              self.box.add_widget(self.entryBox, 1)
+
+       def gotoToken(self, button):
+              changeScreen("Help")
+              #TODO Scroll to this section
+              
+       def addToCommandList(self, button):
+              
+              token = self.commandName.text 
+              if len(token) == 0:
+                     self.commandName.error = True
+                     return
+              #TODO Check if the bot exist
 
 # Panels---------------------------------------------------------------------------------
 class ExpentionPanelContent(MDBoxLayout):
@@ -297,7 +322,7 @@ class ChoicePanel(ExpentionPanelContent)   :
 class NavigationDrawer(MDNavigationDrawer):
        def __init__(self, **kwargs):
               super(NavigationDrawer, self).__init__(**kwargs)
-              individualItems = ["Command List"]
+              individualItems = ["Token", "Command List"]
               self.drawerHeader = MDNavigationDrawerHeader(title="Bot: ", text="Status: offline", title_font_size="26sp")
               self.drawerMenu = MDNavigationDrawerMenu()
               self.drawerMenu.add_widget(self.drawerHeader)  
@@ -325,6 +350,8 @@ class WindowsManager(ScreenManager):
               self.sendFile = SendFile(label="Send File", mediaType="File", name= "Send File")
               self.sendAudio = SendFile(label="Send Audio", mediaType="Audio", name= "Send Audio")
               self.mediaGroup = SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group")
+              self.token = TokenScreen(name="Token")
+
 
               self.add_widget(self.sendMessage)
               self.add_widget(self.sendImage)
@@ -332,6 +359,7 @@ class WindowsManager(ScreenManager):
               self.add_widget(self.sendFile)
               self.add_widget(self.sendAudio)
               self.add_widget(self.mediaGroup)
+              self.add_widget(self.token)
          
 
 
