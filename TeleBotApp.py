@@ -33,6 +33,8 @@ MediaTypes = ["Send File", "Send Image", "Send Video", "Send Audio"]
 # Columns for datatables
 commandListCols = [("N.", dp(20)), ("Command Type", dp(40)), ("Command Name", dp(40)), ("Media Id", dp(30)), ("Caption", dp(60)),]
 mediaGroupCols = [ ("N.", dp(20)), ("Type", dp(50)), ("Caption", dp(50)),  ("Media Id", dp(50)),]
+bannedWordsCols = [ ("N.", dp(20)), ("Word", dp(40)), ("Time", dp(40))]
+adminListCols = [ ("N.", dp(20)), ("Name", dp(40)), ("Status", dp(40))]
 
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
@@ -382,6 +384,39 @@ class HandleMediaGroup(DataTable):
                      caption = f"{caption[:70]}..." if len(caption) > 70 else caption
                      newRows.append((index, data.get("type"), caption, data.get("media")))
                      index +=1
+              self.table.row_data = newRows  
+
+class BannedWord(DataTable):
+       def __init__(self, bannedWords, columns, **kwargs):
+              super().__init__(bannedWords, columns, **kwargs)
+              self.toolbar.title  = "List Of Banned words"
+              self.mapData()  
+
+       def mapData(self):
+              newRows = []
+              index = 1
+              for data in self.commandList:
+                     word = data.get('word')
+                     word = f"{word[:20]}..." if len(word) > 20 else word
+                     newRows.append((index, word, data.get("time") ))
+                     index +=1
+              self.table.row_data = newRows  
+               
+class AdminList(DataTable):
+       def __init__(self, listOfAdmin, columns, **kwargs):
+              super().__init__(listOfAdmin, columns, **kwargs)
+              self.toolbar.title  = "List Of Admins"
+              self.deleteButton.pos_hint= {'center_x': .1,'center_y': 0.05}
+       
+       def mapData(self):
+              newRows = []
+              index = 1
+              for data in self.commandList:
+                     status = "Master" if data.get("name") == App.get_running_app().root.BotDatas.get("master").get("name") else ""
+                     name = data.get("name")
+                     name = f"{name[:20]}..." if len(data.get("name")) > 20 else name
+                     newRows.append((index, name, status))
+                     index +=1   
               self.table.row_data = newRows    
 # DataTables and child classes
 
@@ -440,6 +475,11 @@ class WindowsManager(ScreenManager):
               self.token = TokenScreen(name="Token")
               self.dataTable = DataTable(name="Command List", commandList=BotDatas.get("bot commands"), columns=commandListCols)
               self.handleMediaGroup = HandleMediaGroup(name="Handle Media Group", mediaList=self.mediaGroup.mediaList, columns=mediaGroupCols)
+              self.banWords = BanWords(name="Ban words")
+              self.bannedWords = BannedWord(name="Banned Words", columns=bannedWordsCols, bannedWords=BotDatas.get("ban words"))
+              self.addAdmin = AdminsScreen(name="Add Admin")
+              self.adminList = AdminList(name="List Of Admin", columns=adminListCols, listOfAdmin=BotDatas.get("bot admins")) 
+
 
 
               self.add_widget(self.sendMessage)
@@ -451,9 +491,10 @@ class WindowsManager(ScreenManager):
               self.add_widget(self.token)
               self.add_widget(self.dataTable)
               self.add_widget(self.handleMediaGroup)
-         
-
-
+              self.add_widget(self.banWords)
+              self.add_widget(self.bannedWords)
+              self.add_widget(self.addAdmin)
+              self.add_widget(self.adminList)
 
 # Root widget
 class NavLayout(MDNavigationLayout):
