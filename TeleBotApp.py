@@ -14,7 +14,9 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.datatables import MDDataTable
 
+from kivy.metrics import dp
 
 from TelegramBot import TelegramBot
 from Config import saveCommandList, loadCommandList, saveToken, loadToken, toggleEnableSave, isSaveTokenEnabled, deleteToken, savePath, loadPath
@@ -26,6 +28,11 @@ largeScreens = ["Command List"]
 longScreens  = [*BotCommands, "Help"]
 # Choice user will have for bans
 BanTimes = ["Hour", "Day", "Week", "Month", "Permanent"]
+# For the command's datatable
+MediaTypes = ["Send File", "Send Image", "Send Video", "Send Audio"]
+# Columns for datatables
+commandListCols = [("N.", dp(20)), ("Command Type", dp(40)), ("Command Name", dp(40)), ("Media Id", dp(30)), ("Caption", dp(60)),]
+
 
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
@@ -57,6 +64,7 @@ class MainToolBar(MDTopAppBar):
               self.pos_hint = {'top': 1}
               self.elevation = 0
 
+# Send Message and child classes
 class SendMessageScreen(Screen):
        def __init__(self, label, **kwargs):
               super(SendMessageScreen, self).__init__(**kwargs)
@@ -297,6 +305,65 @@ class TokenScreen(SendMessageScreen):
                      self.commandName.error = True
                      return
               #TODO Check if the bot exist
+# Send Message and child classes
+
+# DataTables and child classes
+class DataTable(Screen):
+       def __init__(self,  commandList, columns, **kwargs):
+              super(DataTable, self).__init__(**kwargs)
+              self.commandList= commandList
+              self.columns  = columns
+              self.table = MDDataTable(
+                     pos_hint = {'center_x': 0.5},
+                     size_hint =(1, .8),
+                     use_pagination=True,
+                     check = True,
+                     elevation = 0,
+                     column_data = self.columns
+              )
+
+              
+              self.layout = FloatLayout(size_hint=( 1, 1))
+              self.deleteButton = MDRaisedButton(text="Delete", pos_hint= {'center_x': .05,'center_y': 0.07}, on_release=self.delete_button_press)
+              self.toolbar = MainToolBar(title= "List Of Commands")
+              self.layout.add_widget(self.toolbar)
+              self.layout.add_widget(self.table)
+              self.layout.add_widget(self.deleteButton)
+              self.add_widget(self.layout)
+              if self.__class__.__name__ == "DataTable":
+                     self.mapData()
+
+     
+       def delete_button_press(self, button):       
+              chekedItems = self.table.get_row_checks()
+       
+              indexes = [int(x[0])-1 for x in chekedItems]
+              indexes.sort(reverse=True)
+              if len(indexes) == 0:
+                     return
+              for index in indexes:
+                     if index > len(self.commandList)-1:
+                            return
+                     else:
+                            self.commandList.pop(index)
+              self.mapData()
+              #TODO Save datas
+                
+
+       def mapData(self):
+              index = 1
+              newRows = []
+              for data in self.commandList:
+                     if data.get("displayed type") == "Send Message":
+                            newRows.append((index, data.get("displayed type"), data.get("name"), "", f"{data.get('args').get('text')[:80]}..."))
+                     elif data.get("displayed type") in MediaTypes:
+                            newRows.append((index, data.get("displayed type"), data.get("name"), data.get("args").get("fileId"), f"{data.get('args').get('caption')[:80]}..."))
+                     elif data.get("displayed type") == "Send Media Group":
+                            ids = " ,".join([media.get("media") for media in data.get("args").get("media")])
+                            newRows.append((index, data.get("displayed type"), data.get("name"), f"{ids[:25]}...", ""))
+                     index+=1     
+              self.table.row_data = newRows     
+# DataTables and child classes
 
 # Panels---------------------------------------------------------------------------------
 class ExpentionPanelContent(MDBoxLayout):
@@ -351,6 +418,7 @@ class WindowsManager(ScreenManager):
               self.sendAudio = SendFile(label="Send Audio", mediaType="Audio", name= "Send Audio")
               self.mediaGroup = SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group")
               self.token = TokenScreen(name="Token")
+              self.dataTable = DataTable(name="Command List", commandList=BotDatas.get("bot commands"), columns=commandListCols)
 
 
               self.add_widget(self.sendMessage)
@@ -360,6 +428,7 @@ class WindowsManager(ScreenManager):
               self.add_widget(self.sendAudio)
               self.add_widget(self.mediaGroup)
               self.add_widget(self.token)
+              self.add_widget(self.dataTable)
          
 
 
