@@ -378,7 +378,9 @@ class HandleMediaGroup(DataTable):
               newRows = []
               index = 1
               for data in self.commandList:
-                     newRows.append((index, data.get("type"), data.get("caption"), data.get("media")))
+                     caption = data.get("caption")
+                     caption = f"{caption[:70]}..." if len(caption) > 70 else caption
+                     newRows.append((index, data.get("type"), caption, data.get("media")))
                      index +=1
               self.table.row_data = newRows    
 # DataTables and child classes
