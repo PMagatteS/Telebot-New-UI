@@ -353,10 +353,14 @@ class DataTable(Screen):
               index = 1
               newRows = []
               for data in self.commandList:
+                     if data.get("args"):
+                            text = data.get("args").get("text")
+                            textLength = len(text)
+                            caption = f"{text[:80]}..." if textLength > 80 else text
                      if data.get("displayed type") == "Send Message":
-                            newRows.append((index, data.get("displayed type"), data.get("name"), "", f"{data.get('args').get('text')[:80]}..."))
+                            newRows.append((index, data.get("displayed type"), data.get("name"), "", caption))
                      elif data.get("displayed type") in MediaTypes:
-                            newRows.append((index, data.get("displayed type"), data.get("name"), data.get("args").get("fileId"), f"{data.get('args').get('caption')[:80]}..."))
+                            newRows.append((index, data.get("displayed type"), data.get("name"), data.get("args").get("fileId"), caption))
                      elif data.get("displayed type") == "Send Media Group":
                             ids = " ,".join([media.get("media") for media in data.get("args").get("media")])
                             newRows.append((index, data.get("displayed type"), data.get("name"), f"{ids[:25]}...", ""))
