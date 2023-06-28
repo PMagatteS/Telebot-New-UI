@@ -15,6 +15,9 @@ from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.selectioncontrol import MDSwitch
+
 
 from kivy.metrics import dp
 
@@ -35,6 +38,12 @@ commandListCols = [("N.", dp(20)), ("Command Type", dp(40)), ("Command Name", dp
 mediaGroupCols = [ ("N.", dp(20)), ("Type", dp(50)), ("Caption", dp(50)),  ("Media Id", dp(50)),]
 bannedWordsCols = [ ("N.", dp(20)), ("Word", dp(40)), ("Time", dp(40))]
 adminListCols = [ ("N.", dp(20)), ("Name", dp(40)), ("Status", dp(40))]
+
+def startBot():
+       pass
+
+def stopBot():
+       pass
 
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
@@ -438,8 +447,64 @@ class ChoicePanel(ExpentionPanelContent)   :
 
        def goto(self, inst):
               self.parent.panel_cls.text = inst.text           
-# Panels---------------------------------------------------------------------------------           
-             
+# Panels---------------------------------------------------------------------------------    
+# Content
+class TokenConfigContent(MDBoxLayout):
+       def __init__(self, *args, **kwargs):
+              super().__init__(*args, **kwargs)
+              self.orientation = "vertical"
+              self.adaptive_height = True
+              self.tokenLabel = MDLabel(text="Save Token On Quit", pos_hint={'top': 1.0,'center_x': .50})
+              self.tokenSwitch = MDSwitch(active=isSaveTokenEnabled(),  pos_hint={'top': 1,'right': .90})
+              self.add_widget(self.tokenLabel)
+              self.add_widget(self.tokenSwitch)
+# Content
+       
+# Help
+class HelpScreen(Screen):
+       def __init__(self, **kw):
+              super().__init__(**kw)
+              self.toolbar = MainToolBar()
+              self.toolbar.title= "Help"
+
+# Dashboard
+class DashBoard(Screen):
+       def __init__(self, **kw):
+              super().__init__(**kw)
+              self.toolbar = MainToolBar(title = "Dashboard")
+              self.box = FloatLayout(size_hint_y= None,pos_hint={'top': .8}, size_hint_x= 1)
+              
+              self.startButton = MDRaisedButton(text="Start Bot", pos_hint={'right': .3, 'top': 1}, on_press= lambda x: startBot())
+              self.stopButton = MDRaisedButton(text="Stop Bot", disabled = True, pos_hint={'right': .9, 'top': 1}, on_press= lambda x: stopBot())
+
+              self.tokenConfig = MDRaisedButton(text="Token Config", pos_hint={'top': .4,'right' : 0.35}, halign="center", on_press= lambda x: self.tokenModal.open())
+              self.tokenModal = MDDialog(title="Token Configuration",type= 'custom', content_cls=TokenConfigContent(), size_hint= (0.9, None),
+                                         buttons= [MDFlatButton(text= 'cancel', on_release=lambda x: self.tokenModal.dismiss()), MDRaisedButton(text= 'save', on_release=self.saveTokenConfig)])
+
+              self.filesButton = MDRaisedButton(text="Bot Files", pos_hint={'right': .3, 'top': -.2}, on_press= lambda x: self.fileDropdown.open())
+              self.webhookButton = MDRaisedButton(text="Configure Webhook", disabled = True, pos_hint={'right': .9, 'top': -.2})
+              self.fileDropdown = MDDropdownMenu(items=[], caller=self.filesButton, width_mult= 3)
+
+              self.box.add_widget(self.startButton)
+              self.box.add_widget(self.stopButton)
+              self.box.add_widget(self.tokenConfig)
+              self.box.add_widget(self.filesButton)
+              self.box.add_widget(self.webhookButton)
+              
+              self.add_widget(self.toolbar)
+              self.add_widget(self.box)
+
+       def saveTokenConfig(self, button):
+              switchValue = self.tokenModal.content_cls.tokenSwitch.active
+              if switchValue == False:
+                     deleteToken()
+              else:
+                     token = App.get_running_app().root.Bot.botToken
+                     if len(token) != 0:
+                            saveToken(token)
+
+              toggleEnableSave(switchValue)
+              self.tokenModal.dismiss()
 # Nav drawer
 class NavigationDrawer(MDNavigationDrawer):
        def __init__(self, **kwargs):
@@ -479,9 +544,10 @@ class WindowsManager(ScreenManager):
               self.bannedWords = BannedWord(name="Banned Words", columns=bannedWordsCols, bannedWords=BotDatas.get("ban words"))
               self.addAdmin = AdminsScreen(name="Add Admin")
               self.adminList = AdminList(name="List Of Admin", columns=adminListCols, listOfAdmin=BotDatas.get("bot admins")) 
+              self.dashboard = DashBoard(name="Dashboard")
 
 
-
+              self.add_widget(self.dashboard)
               self.add_widget(self.sendMessage)
               self.add_widget(self.sendImage)
               self.add_widget(self.sendVideo)
@@ -495,6 +561,7 @@ class WindowsManager(ScreenManager):
               self.add_widget(self.bannedWords)
               self.add_widget(self.addAdmin)
               self.add_widget(self.adminList)
+
 
 # Root widget
 class NavLayout(MDNavigationLayout):
