@@ -43,7 +43,12 @@ commandListCols = [("N.", dp(20)), ("Command Type", dp(40)), ("Command Name", dp
 mediaGroupCols = [ ("N.", dp(20)), ("Type", dp(50)), ("Caption", dp(50)),  ("Media Id", dp(50)),]
 bannedWordsCols = [ ("N.", dp(20)), ("Word", dp(40)), ("Time", dp(40))]
 adminListCols = [ ("N.", dp(20)), ("Name", dp(40)), ("Status", dp(40))]
-
+# Items for dropdown in the dashboard
+DropdownBotItems = [ { "viewclass": "OneLineListItem", "text": "Load Datas", "height": 56, "on_release": lambda: App.get_running_app().root.loadFile(), }, { "viewclass": "OneLineListItem", "text": "Save Datas", "height": 56, "on_release": lambda: App.get_running_app().root.saveData(), }, { "viewclass": "OneLineListItem", "text": "Get Server File", "height": 56, "on_release": lambda: App.get_running_app().root.getServerFiles(), }, ]
+# Function to close the dropdown otherwise it stay dislplayed
+def closeFilesDropdown():
+       App.get_running_app().root.children[1].dashboard.fileDropdown.dismiss()
+       
 def startBot():
        pass
 
@@ -488,7 +493,7 @@ class DashBoard(Screen):
 
               self.filesButton = MDRaisedButton(text="Bot Files", pos_hint={'right': .3, 'top': -.2}, on_press= lambda x: self.fileDropdown.open())
               self.webhookButton = MDRaisedButton(text="Configure Webhook", disabled = True, pos_hint={'right': .9, 'top': -.2})
-              self.fileDropdown = MDDropdownMenu(items=[], caller=self.filesButton, width_mult= 3)
+              self.fileDropdown = MDDropdownMenu(items=DropdownBotItems, caller=self.filesButton, width_mult= 3)
 
               self.box.add_widget(self.startButton)
               self.box.add_widget(self.stopButton)
@@ -643,12 +648,12 @@ class NavLayout(MDNavigationLayout):
                             self.screenmanager.dashboard.stopButton.disabled=True
 
        def loadFile(self):
-              # Find a way to close the dropdown
+              closeFilesDropdown()
               self.fileManager = MDFileManager(exit_manager=self.exitManager,select_path=self.loadSelected)
               self.fileManager.show(loadPath())
               
        def saveData(self):
-              # Find a way to close the dropdown
+              closeFilesDropdown()
               self.fileManager = MDFileManager(exit_manager=self.exitManager,select_path=self.saveInPath)
               self.fileManager.show(loadPath())
               self.fileName.open()
@@ -702,7 +707,7 @@ class NavLayout(MDNavigationLayout):
               self.fileManager.close()
                      
        def getServerFiles(self):
-              # Find a way to close the dropdown
+              closeFilesDropdown()
               self.fileManager = MDFileManager(exit_manager=self.exitManager,select_path=self.copyFiles)
               self.fileManager.show(loadPath())
 
