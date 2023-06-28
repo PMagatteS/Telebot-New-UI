@@ -50,10 +50,15 @@ def closeFilesDropdown():
        App.get_running_app().root.children[1].dashboard.fileDropdown.dismiss()
        
 def startBot():
-       pass
+       App.get_running_app().root.startBot()
+       
 
 def stopBot():
-       pass
+       App.get_running_app().root.stopBot()
+
+def saveDatas():
+       datas = App.get_running_app().root.BotDatas
+       saveCommandList(datas)
 
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
@@ -134,13 +139,13 @@ class SendMessageScreen(Screen):
               if len(commandName) > 0 and (len(caption)>0 and len(caption) <4097 and self.requieredCaption)or (not self.requieredCaption and len(self.mediaID.text) > 0 and len(caption) <1025):
                      if  self.requieredCaption:
                             appDatas.append({"name": commandName, "command type": "Send message", "displayed type": "Send Message", "args": {"text": caption}})
-                            #TODO save the datas
+                            saveDatas()
                      else:  
                             if self.mediaType == "Image":
                                    appDatas.append({"name": commandName, "command type": "Send image", "displayed type": "Send Image", "args": {"caption": caption, "fileId":self.mediaID.text}})
                             else:
                                    appDatas.append({"name": commandName, "command type": "Send document", "displayed type": f"Send {self.mediaType}", "args": {"caption": caption, "fileId":self.mediaID.text}})
-                            #TODO save the datas
+                            saveDatas()
                             self.mediaID.text = ""
                      self.commandName.text = ""
                      self.message.text = ""
@@ -233,7 +238,8 @@ class SendMediaGroup(SendFile):
                      appDatas.append({"name": commandName, "command type": "Send media group", "displayed type": "Send Media Group", "args": {"media":self.mediaList.copy()}})
                      self.mediaList.clear()
                      self.commandName.text = ""
-                     # Refresh involved tables and save data
+                     # Refresh involved tables
+                     saveDatas()
 
               else:
                      return  
@@ -262,7 +268,8 @@ class BanWords(SendMessageScreen):
                      banList = App.get_running_app().root.BotDatas.get("ban words")
                      banList.append({"word": words, "time": banTime})
                      self.commandName.text = ""
-                     #TODO Save datas and refresh right table
+                     #TODO refresh right table
+                     saveDatas()
 
 class AdminsScreen(SendMessageScreen):
        def __init__(self, **kwargs):
@@ -299,7 +306,8 @@ class AdminsScreen(SendMessageScreen):
                                    adminList.append({"name":name, "getAllId": False})
               self.commandName.text = ""
               self.adminType.panel_cls.text = "Admin"
-              #TODO Save datas and refresh right table
+              #TODO refresh right table
+              saveDatas()
 
 class TokenScreen(SendMessageScreen):
        def __init__(self,  **kwargs):
@@ -367,7 +375,7 @@ class DataTable(Screen):
                      else:
                             self.commandList.pop(index)
               self.mapData()
-              #TODO Save datas
+              saveDatas()
                 
 
        def mapData(self):
@@ -699,7 +707,8 @@ class NavLayout(MDNavigationLayout):
                             self.screenmanager.dataTable.commandList = self.BotDatas.get("bot commands")
                             self.screenmanager.adminList.commandList = self.BotDatas.get("bot admins")
                             self.screenmanager.bannedWords.commandList = self.BotDatas.get("ban words")
-                            # Refresh tables and save datas
+                            # Refresh tables
+                            saveDatas()
                                    
               except:
                      infoDialog(text="Invalid Or Corrupted File")
