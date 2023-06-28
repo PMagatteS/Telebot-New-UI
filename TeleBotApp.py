@@ -17,9 +17,14 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.selectioncontrol import MDSwitch
-
-
+from kivymd.uix.filemanager import MDFileManager
+from kivy.clock import Clock
 from kivy.metrics import dp
+
+import threading
+import os
+import json
+import shutil
 
 from TelegramBot import TelegramBot
 from Config import saveCommandList, loadCommandList, saveToken, loadToken, toggleEnableSave, isSaveTokenEnabled, deleteToken, savePath, loadPath
@@ -575,6 +580,140 @@ class NavLayout(MDNavigationLayout):
               self.screenmanager = WindowsManager(BotDatas=self.BotDatas)
               self.add_widget(self.screenmanager)
               self.add_widget(self.navigationDrawer)
+
+
+       def handleError(self, text):
+              #TODO Find a way to show the error on the main thread
+              infoDialog(text)
+              self.stopBot()
+       
+       def checkBot(self, token):
+              bot = App.get_running_app().root.Bot
+              isBot = bot.getMe(token=token)
+
+              if isBot == "error":
+                     self.Bot.botToken = ""
+                     return
+              if isBot.get("ok"):
+                     infoDialog(text= f"Your bot {isBot.get('result').get('first_name')} is ready to use", title= f"Bot username: {isBot.get('result').get('username')}")
+                     bot.botToken = token
+                     # Change the drawer header
+                     if isSaveTokenEnabled():
+                            saveToken(token)
+                     
+              else:
+                     infoDialog(text= "Bot not found make sure you enter the token right")
+                     self.Bot.botToken = ""
+                     pass
+
+       def handleUpdates(self, *args):
+              thread = threading.Thread(target=self.Bot.handleUpdates)
+              thread.start()
+       
+       def startBot(self):
+              if len(self.Bot.botToken) == 0:
+                     changeScreen("Token")
+                     infoDialog(text="Insert your bot token")
+                     return
+              self.screenmanager.dashboard.startButton.disabled=True
+              self.screenmanager.dashboard.stopButton.disabled=False
+              # Change the drawer header
+              self.clock = Clock.schedule_interval(self.handleUpdates, 4)
+       
+       def stopBot(self):
+              if "clock" in dir(self):
+                     self.clock.cancel()
+                     # Change the drawer header
+                     try:
+                            self.screenmanager.dashboard.stopButton.disabled=True
+                            self.screenmanager.dashboard.startButton.disabled=False
+                     except:
+                            pass
+
+       def checkStatus(self, *args):
+              if "clock" not in dir(self):
+                     self.screenmanager.dashboard.startButton.disabled=False
+                     self.screenmanager.dashboard.stopButton.disabled=True
+              else:
+                     if self.clock.is_triggered == True:
+                            self.screenmanager.dashboard.startButton.disabled=True
+                            self.screenmanager.dashboard.stopButton.disabled=False
+                     else:
+                            self.screenmanager.dashboard.startButton.disabled=False
+                            self.screenmanager.dashboard.stopButton.disabled=True
+
+       def loadFile(self):
+              # Find a way to close the dropdown
+              self.fileManager = MDFileManager(exit_manager=self.exitManager,select_path=self.loadSelected)
+              self.fileManager.show(loadPath())
+              
+       def saveData(self):
+              # Find a way to close the dropdown
+              self.fileManager = MDFileManager(exit_manager=self.exitManager,select_path=self.saveInPath)
+              self.fileManager.show(loadPath())
+              self.fileName.open()
+
+       def exitManager(self, instance):
+              self.fileManager.close()
+
+       def saveInPath(self, path):
+              fileName= "BotDatas.json" if len(self.fileName.content_cls.entry.text)==0 else self.fileName.content_cls.entry.text
+              savePath(path)
+              if os.path.isfile(path):
+                     infoDialog("Select A Directory Not A File")
+                     return
+              try:
+                     with open(path+f"\{fileName}", "w") as f:
+                            json.dump(self.BotDatas, f)
+
+                     self.fileManager.close()
+                     
+              except Exception as e:
+                     infoDialog("Error Could Not Save Your Datas")
+                     
+       def loadSelected(self, path):
+              savePath(path)
+              keys = ["master", "bot commands", "ban words", "bot admins"]       
+              try: 
+                     with open(path, "r") as f:
+                            newDatas = json.load(f)
+                            if type(newDatas) == dict:
+                                   for key in keys:
+                                          if key not in newDatas.keys():
+                                                 infoDialog(text="Invalid Data File")
+                                                 return
+                                   for key in newDatas.keys():
+                                          if key == "master" and type(newDatas.get(key)) != dict:
+                                                 infoDialog(f"Invalid Key In {path}")
+                                                 return
+                                          elif key != "master" and type(newDatas.get(key)) != list:
+                                                 infoDialog(f"Invalid Key In {path}")
+                                                 return
+
+                            self.BotDatas = newDatas
+                            self.screenmanager.dataTable.commandList = self.BotDatas.get("bot commands")
+                            self.screenmanager.adminList.commandList = self.BotDatas.get("bot admins")
+                            self.screenmanager.bannedWords.commandList = self.BotDatas.get("ban words")
+                            # Refresh tables and save datas
+                                   
+              except:
+                     infoDialog(text="Invalid Or Corrupted File")
+                     pass
+              self.fileManager.close()
+                     
+       def getServerFiles(self):
+              # Find a way to close the dropdown
+              self.fileManager = MDFileManager(exit_manager=self.exitManager,select_path=self.copyFiles)
+              self.fileManager.show(loadPath())
+
+       def copyFiles(self, path):
+              savePath(path)
+              destination = path + "/bot"
+              source = os.getcwd() + "/bot"
+              shutil.copytree(source, destination)
+              shutil.copyfile(os.getcwd()+"/config.ini", destination+"/config.ini")
+              with open(destination + "/BotDatas.json", "w") as f:
+                     json.dump(self.BotDatas, f)
 
 # App            
 class TelebotManagerApp(MDApp):
