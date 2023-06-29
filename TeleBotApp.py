@@ -60,6 +60,18 @@ def saveDatas():
        datas = App.get_running_app().root.BotDatas
        saveCommandList(datas)
 
+def refreshBanWords():
+       App.get_running_app().root.children[1].bannedWords.mapData()
+
+def refreshDataTable():
+       App.get_running_app().root.children[1].dataTable.mapData()
+
+def refreashMediaGroup():
+       App.get_running_app().root.children[1].handleMediaGroup.mapData()
+
+def refreshAdmins():
+       App.get_running_app().root.children[1].adminList.mapData()
+
 def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
        dialog.open()
