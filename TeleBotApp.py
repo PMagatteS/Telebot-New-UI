@@ -161,7 +161,7 @@ class SendMessageScreen(Screen):
                             self.mediaID.text = ""
                      self.commandName.text = ""
                      self.message.text = ""
-                     #TODO refresh the datatable
+                     refreshDataTable()
                      
               else: 
                      return
@@ -232,7 +232,7 @@ class SendMediaGroup(SendFile):
                                    self.mediaList.append({"type": typeOfMedia.lower(), "caption": caption, "media": mediaId})
                      self.message.text= ""
                      self.mediaID.text= ""
-                     # Update the media group table
+                     refreashMediaGroup()
        
        def addToCommandList(self, button):
               appDatas = appDatas = App.get_running_app().root.BotDatas.get('bot commands')
@@ -250,7 +250,8 @@ class SendMediaGroup(SendFile):
                      appDatas.append({"name": commandName, "command type": "Send media group", "displayed type": "Send Media Group", "args": {"media":self.mediaList.copy()}})
                      self.mediaList.clear()
                      self.commandName.text = ""
-                     # Refresh involved tables
+                     refreashMediaGroup()
+                     refreshDataTable()
                      saveDatas()
 
               else:
@@ -280,7 +281,7 @@ class BanWords(SendMessageScreen):
                      banList = App.get_running_app().root.BotDatas.get("ban words")
                      banList.append({"word": words, "time": banTime})
                      self.commandName.text = ""
-                     #TODO refresh right table
+                     refreshBanWords()
                      saveDatas()
 
 class AdminsScreen(SendMessageScreen):
@@ -318,7 +319,7 @@ class AdminsScreen(SendMessageScreen):
                                    adminList.append({"name":name, "getAllId": False})
               self.commandName.text = ""
               self.adminType.panel_cls.text = "Admin"
-              #TODO refresh right table
+              refreshAdmins()
               saveDatas()
 
 class TokenScreen(SendMessageScreen):
@@ -719,7 +720,9 @@ class NavLayout(MDNavigationLayout):
                             self.screenmanager.dataTable.commandList = self.BotDatas.get("bot commands")
                             self.screenmanager.adminList.commandList = self.BotDatas.get("bot admins")
                             self.screenmanager.bannedWords.commandList = self.BotDatas.get("ban words")
-                            # Refresh tables
+                            refreshDataTable()
+                            refreshAdmins()
+                            refreshBanWords()
                             saveDatas()
                                    
               except:
