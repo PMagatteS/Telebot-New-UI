@@ -76,6 +76,13 @@ def infoDialog(text, title=""):
        dialog = MDDialog( title=title, text=text, buttons=[MDRaisedButton(text="DISCARD", on_press= lambda x: dialog.dismiss()),], )
        dialog.open()
 
+def changeHeader(title=None, text=None):
+       header = App.get_running_app().root.children[0].drawerHeader
+       if title:
+              header.title = title
+       if text: 
+              header.text = text
+
 def toggleDrawer(*args):
        App.get_running_app().root.children[0].set_state("toggle")
 
@@ -345,7 +352,7 @@ class TokenScreen(SendMessageScreen):
               if len(token) == 0:
                      self.commandName.error = True
                      return
-              #TODO Check if the bot exist
+              Clock.schedule_once(lambda dt: App.get_running_app().root.checkBot(token), .5)
 # Send Message and child classes
 
 # DataTables and child classes
@@ -623,7 +630,7 @@ class NavLayout(MDNavigationLayout):
               if isBot.get("ok"):
                      infoDialog(text= f"Your bot {isBot.get('result').get('first_name')} is ready to use", title= f"Bot username: {isBot.get('result').get('username')}")
                      bot.botToken = token
-                     # Change the drawer header
+                     changeHeader(title=f"Bot: {isBot.get('result').get('first_name')}")
                      if isSaveTokenEnabled():
                             saveToken(token)
                      
@@ -643,13 +650,13 @@ class NavLayout(MDNavigationLayout):
                      return
               self.screenmanager.dashboard.startButton.disabled=True
               self.screenmanager.dashboard.stopButton.disabled=False
-              # Change the drawer header
+              changeHeader(text="Status: online")
               self.clock = Clock.schedule_interval(self.handleUpdates, 4)
        
        def stopBot(self):
               if "clock" in dir(self):
                      self.clock.cancel()
-                     # Change the drawer header
+                     changeHeader(text="Status: offline")
                      try:
                             self.screenmanager.dashboard.stopButton.disabled=True
                             self.screenmanager.dashboard.startButton.disabled=False
