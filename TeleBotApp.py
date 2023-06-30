@@ -18,6 +18,7 @@ from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.selectioncontrol import MDSwitch
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.scrollview import MDScrollView
 from kivy.clock import Clock
 from kivy.metrics import dp
 
@@ -28,7 +29,7 @@ import shutil
 
 from TelegramBot import TelegramBot
 from Config import saveCommandList, loadCommandList, saveToken, loadToken, toggleEnableSave, isSaveTokenEnabled, deleteToken, savePath, loadPath
-
+from Help import helps
 # The main commands of the bots
 BotCommands = ["Send Message", "Send Image", "Send Video", "Send File", "Send Audio", "Media Group"]
 # Will add more screen to those lists
@@ -437,6 +438,7 @@ class BannedWord(DataTable):
        def __init__(self, bannedWords, columns, **kwargs):
               super().__init__(bannedWords, columns, **kwargs)
               self.toolbar.title  = "List Of Banned words"
+              self.deleteButton.pos_hint= {'center_x': .1,'center_y': 0.05}
               self.mapData()  
 
        def mapData(self):
@@ -502,8 +504,33 @@ class TokenConfigContent(MDBoxLayout):
 class HelpScreen(Screen):
        def __init__(self, **kw):
               super().__init__(**kw)
+              self.titles = {}
+              self.scrollview = MDScrollView(scroll_type=['bars', 'content'],bar_width='10dp')
               self.toolbar = MainToolBar()
+              self.layout = MDBoxLayout(orientation= 'vertical',  size_hint_y=None)
               self.toolbar.title= "Help"
+              self.layout.add_widget(self.toolbar)
+              self.layoutSize = 400
+              
+              for index, help in enumerate(helps):
+                     box1 = MDBoxLayout(orientation= 'vertical', spacing=10, padding=dp(10))
+                     title = MDLabel(font_style="H6", halign="left",text= help.get("title"))
+                     box1.add_widget(title)
+                     self.titles[index] = title
+                     content = MDLabel(halign="left",text= help.get("content"))
+                     box1.add_widget(content)
+                     box1.size[1] = box1.size[1] + title.size[1] + content.size[1]
+                     self.layout.add_widget(box1)
+                     self.layoutSize += box1.size[1]
+                     #TODO need a better way to do this size alwais return [100, 100]
+                    
+              
+              self.scrollview.add_widget(self.layout)
+              self.add_widget(self.scrollview)
+              self.layout.size= (Window.width, self.layoutSize)
+              
+       def scrollToTitle(self, title):
+              self.scrollview.scroll_to(self.titles[title])
 
 # Dashboard
 class DashBoard(Screen):
@@ -583,6 +610,7 @@ class WindowsManager(ScreenManager):
               self.addAdmin = AdminsScreen(name="Add Admin")
               self.adminList = AdminList(name="List Of Admin", columns=adminListCols, listOfAdmin=BotDatas.get("bot admins")) 
               self.dashboard = DashBoard(name="Dashboard")
+              self.help = HelpScreen(name="Help")
 
 
               self.add_widget(self.dashboard)
@@ -599,6 +627,7 @@ class WindowsManager(ScreenManager):
               self.add_widget(self.bannedWords)
               self.add_widget(self.addAdmin)
               self.add_widget(self.adminList)
+              self.add_widget(self.help)
 
 
 # Root widget
