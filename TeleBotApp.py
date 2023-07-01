@@ -190,7 +190,7 @@ class SendFile(SendMessageScreen):
 
        def gotoMediaId(self, button):
               changeScreen("Help")
-              #TODO scroll to the right section
+              App.get_running_app().root.children[1].help.scrollToTitle(1)
 
 class SendMediaGroup(SendFile):
        def __init__(self, label, mediaType,**kw):
@@ -346,7 +346,7 @@ class TokenScreen(SendMessageScreen):
 
        def gotoToken(self, button):
               changeScreen("Help")
-              #TODO Scroll to this section
+              App.get_running_app().root.children[1].help.scrollToTitle(0)
               
        def addToCommandList(self, button):  
               token = self.commandName.text 
