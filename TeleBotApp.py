@@ -596,39 +596,26 @@ class NavigationDrawer(MDNavigationDrawer):
 class WindowsManager(ScreenManager):
        def __init__(self, BotDatas, **kwargs):
               super(WindowsManager, self).__init__(**kwargs)
-              self.sendMessage = SendMessageScreen(label="Send Message", name = "Send Message")
-              self.sendImage = SendFile(label="Send Image", mediaType="Image", name= "Send Image")
-              self.sendVideo = SendFile(label="Send Video", mediaType="Video", name= "Send Video")
-              self.sendFile = SendFile(label="Send File", mediaType="File", name= "Send File")
-              self.sendAudio = SendFile(label="Send Audio", mediaType="Audio", name= "Send Audio")
-              self.mediaGroup = SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group")
-              self.token = TokenScreen(name="Token")
-              self.dataTable = DataTable(name="Command List", commandList=BotDatas.get("bot commands"), columns=commandListCols)
-              self.handleMediaGroup = HandleMediaGroup(name="Handle Media Group", mediaList=self.mediaGroup.mediaList, columns=mediaGroupCols)
-              self.banWords = BanWords(name="Ban words")
-              self.bannedWords = BannedWord(name="Banned Words", columns=bannedWordsCols, bannedWords=BotDatas.get("ban words"))
-              self.addAdmin = AdminsScreen(name="Add Admin")
-              self.adminList = AdminList(name="List Of Admin", columns=adminListCols, listOfAdmin=BotDatas.get("bot admins")) 
-              self.dashboard = DashBoard(name="Dashboard")
-              self.help = HelpScreen(name="Help")
-
-
-              self.add_widget(self.dashboard)
-              self.add_widget(self.sendMessage)
-              self.add_widget(self.sendImage)
-              self.add_widget(self.sendVideo)
-              self.add_widget(self.sendFile)
-              self.add_widget(self.sendAudio)
-              self.add_widget(self.mediaGroup)
-              self.add_widget(self.token)
-              self.add_widget(self.dataTable)
+              self.all_screens = (self.dashboard, self.sendMessage, self.sendImage, self.sendVideo, self.sendFile, self.sendAudio, self.mediaGroup, self.dataTable, self.banWords, self.bannedWords ,self.token, self.addAdmin, self.adminList, self.help) = (
+                                                        DashBoard(name= "DashBoard"),
+                                                        SendMessageScreen(label="Send Message", name = "Send Message"),
+                                                        SendFile(label="Send Image", mediaType="Image", name= "Send Image"),
+                                                        SendFile(label="Send Video", mediaType="Video", name= "Send Video"),
+                                                        SendFile(label="Send File", mediaType="File", name= "Send File"),
+                                                        SendFile(label="Send Audio", mediaType="Audio", name= "Send Audio"),
+                                                        SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group"),
+                                                        DataTable(name="Command List", commandList=BotDatas.get("bot commands"), columns=commandListCols),
+                                                        BanWords(name="Ban words"),
+                                                        BannedWord(name="Banned Words", columns=bannedWordsCols, commandList= BotDatas.get("ban words")),
+                                                        TokenScreen(name="Token"),
+                                                        AdminsScreen(name="Add Admin"),
+                                                        AdminList(name="List Of Admin", columns=adminListCols, commandList=BotDatas.get("bot admins")),
+                                                        HelpScreen(name="Help"))
+              for screen in self.all_screens:
+                     self.add_widget(screen)
+              # Cannot instantiate it with the other becauce im passing a self.mediaGroup attribute
+              self.handleMediaGroup = HandleMediaGroup(name="Handle Media Group", commandList=self.mediaGroup.mediaList, columns=mediaGroupCols)
               self.add_widget(self.handleMediaGroup)
-              self.add_widget(self.banWords)
-              self.add_widget(self.bannedWords)
-              self.add_widget(self.addAdmin)
-              self.add_widget(self.adminList)
-              self.add_widget(self.help)
-
 
 # Root widget
 class NavLayout(MDNavigationLayout):
