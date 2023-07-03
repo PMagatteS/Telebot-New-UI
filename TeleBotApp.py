@@ -606,15 +606,15 @@ class WindowsManager(ScreenManager):
                                                         SendMediaGroup(name= "Media Group", label="Send Media Group", mediaType="Media Group"),
                                                         DataTable(name="Command List", commandList=BotDatas.get("bot commands"), columns=commandListCols),
                                                         BanWords(name="Ban words"),
-                                                        BannedWord(name="Banned Words", columns=bannedWordsCols, commandList= BotDatas.get("ban words")),
+                                                        BannedWord(name="Banned Words", columns=bannedWordsCols, bannedWords= BotDatas.get("ban words")),
                                                         TokenScreen(name="Token"),
                                                         AdminsScreen(name="Add Admin"),
-                                                        AdminList(name="List Of Admin", columns=adminListCols, commandList=BotDatas.get("bot admins")),
+                                                        AdminList(name="List Of Admin", columns=adminListCols, listOfAdmin=BotDatas.get("bot admins")),
                                                         HelpScreen(name="Help"))
               for screen in self.all_screens:
                      self.add_widget(screen)
               # Cannot instantiate it with the other becauce im passing a self.mediaGroup attribute
-              self.handleMediaGroup = HandleMediaGroup(name="Handle Media Group", commandList=self.mediaGroup.mediaList, columns=mediaGroupCols)
+              self.handleMediaGroup = HandleMediaGroup(name="Handle Media Group", mediaList=self.mediaGroup.mediaList, columns=mediaGroupCols)
               self.add_widget(self.handleMediaGroup)
 
 # Root widget
